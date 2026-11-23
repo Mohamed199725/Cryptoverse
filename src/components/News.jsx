@@ -17,7 +17,7 @@ const News = ({ simplified = false }) => {
   const [newsCategory, setNewsCategory] = useState('BTC');
   const { data: coinResponse } = useGetCryptosQuery(100);
   const hasNewsApiKey = Boolean(process.env.REACT_APP_CRYPTOCOMPARE_API_KEY);
-  const { data: newsResponse, isFetching, isError } = useGetCryptoNewsQuery({ newsCategory, count: simplified ? 6 : 12 }, { skip: !hasNewsApiKey });
+  const { data: newsResponse, error: newsError, isFetching, isError } = useGetCryptoNewsQuery({ newsCategory, count: simplified ? 6 : 12 }, { skip: !hasNewsApiKey });
   const newsList = Array.isArray(newsResponse?.Data) ? newsResponse.Data : [];
   const options = useMemo(() => {
     const seen = new Set();
@@ -29,7 +29,8 @@ const News = ({ simplified = false }) => {
       return true;
     }).map((coin) => ({ value: String(coin.value).toUpperCase(), label: coin.label }));
   }, [coinResponse]);
-  const errorMessage = newsResponse?.Err?.message || newsResponse?.Message;
+  const errorMessage = newsResponse?.Err?.message || newsResponse?.Message || newsError?.data?.Message ||
+    (newsError ? `CryptoCompare request failed (${newsError.status}).` : '');
   return (
     <Row gutter={[16, 16]} className="news-grid">
       {!simplified && <Col span={24}>
